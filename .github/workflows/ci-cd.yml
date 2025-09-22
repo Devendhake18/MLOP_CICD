@@ -6,8 +6,11 @@ on:
   pull_request:
     branches: [ main ]
 
+env:
+  AWS_REGION: ap-south-1
+
 jobs:
-  build:
+  train-and-push-artifacts:
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -20,7 +23,7 @@ jobs:
       uses: aws-actions/configure-aws-credentials@v4
       with:
         role-to-assume: ${{ vars.AWS_ROLE_TO_ASSUME }}
-        aws-region: us-east-1
+        aws-region: ${{ env.AWS_REGION }}
         audience: sts.amazonaws.com
         output-env-credentials: true
 
@@ -39,3 +42,8 @@ jobs:
       run: |
         dvc remote add -d myremote ${{ vars.DVC_S3_URL }}
         dvc pull
+
+    - name: Train model and push artifacts
+      run: |
+        dvc repro
+        dvc push
